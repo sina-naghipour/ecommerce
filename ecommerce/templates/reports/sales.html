@@ -1,0 +1,251 @@
+{% extends 'admin/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">گزارش فروش و درآمد</h1>
+    <div class="flex space-x-2 space-x-reverse">
+        <button onclick="window.print()" class="btn-gray">
+            <i class="fas fa-print ml-2"></i> چاپ گزارش
+        </button>
+        <button class="btn-indigo">
+            <i class="fas fa-file-export ml-2"></i> خروجی اکسل
+        </button>
+    </div>
+</div>
+
+<!-- Date Range Selector -->
+<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">نوع گزارش</label>
+            <select name="report_type" class="w-full p-2 border border-gray-300 rounded-md">
+                <option value="daily" {% if request.GET.report_type == "daily" %}selected{% endif %}>روزانه</option>
+                <option value="weekly" {% if request.GET.report_type == "weekly" %}selected{% endif %}>هفتگی</option>
+                <option value="monthly" {% if request.GET.report_type == "monthly" %}selected{% endif %}>ماهانه</option>
+                <option value="yearly" {% if request.GET.report_type == "yearly" %}selected{% endif %}>سالانه</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">از تاریخ</label>
+            <input type="date" name="start_date" value="{{ request.GET.start_date|default:start_date }}" 
+                   class="w-full p-2 border border-gray-300 rounded-md">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">تا تاریخ</label>
+            <input type="date" name="end_date" value="{{ request.GET.end_date|default:end_date }}" 
+                   class="w-full p-2 border border-gray-300 rounded-md">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">دسته بندی</label>
+            <select name="category" class="w-full p-2 border border-gray-300 rounded-md">
+                <option value="">همه دسته‌ها</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button type="submit" class="btn-indigo w-full">
+                <i class="fas fa-filter ml-2"></i> اعمال فیلتر
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500">فروش کل</p>
+                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ total_sales|floatformat:0|intcomma }} تومان</p>
+            </div>
+            <div class="p-3 rounded-full bg-indigo-50 text-indigo-600">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">{{ sales_change }}% نسبت به دوره قبل</p>
+    </div>
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500">تعداد سفارشات</p>
+                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ total_orders|intcomma }}</p>
+            </div>
+            <div class="p-3 rounded-full bg-green-50 text-green-600">
+                <i class="fas fa-receipt"></i>
+            </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">{{ orders_change }}% نسبت به دوره قبل</p>
+    </div>
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500">مشتریان جدید</p>
+                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ new_customers|intcomma }}</p>
+            </div>
+            <div class="p-3 rounded-full bg-blue-50 text-blue-600">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">{{ customers_change }}% نسبت به دوره قبل</p>
+    </div>
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500">میانگین سبد خرید</p>
+                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ avg_order|floatformat:0|intcomma }} تومان</p>
+            </div>
+            <div class="p-3 rounded-full bg-purple-50 text-purple-600">
+                <i class="fas fa-percentage"></i>
+            </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">{{ avg_order_change }}% نسبت به دوره قبل</p>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <!-- Sales Trend -->
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <h2 class="text-lg font-medium text-gray-800 mb-4">روند فروش</h2>
+        <canvas id="salesChart" height="300"></canvas>
+    </div>
+    
+    <!-- Orders Trend -->
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <h2 class="text-lg font-medium text-gray-800 mb-4">روند سفارشات</h2>
+        <canvas id="ordersChart" height="300"></canvas>
+    </div>
+</div>
+
+<!-- Detailed Report -->
+<div class="mt-8 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+    <h2 class="text-lg font-medium text-gray-900 mb-4">گزارش تفصیلی</h2>
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{% if report_type == "daily" %}روز{% elif report_type == "weekly" %}هفته{% elif report_type == "monthly" %}ماه{% else %}سال{% endif %}</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تعداد سفارشات</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">محصولات فروخته شده</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">فروش ناخالص</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تخفیف‌ها</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">فروش خالص</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for item in report_data %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {{ item.period }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ item.orders|intcomma }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ item.products_sold|intcomma }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ item.gross_sales|floatformat:0|intcomma }} تومان
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">
+                        -{{ item.discounts|floatformat:0|intcomma }} تومان
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                        {{ item.net_sales|floatformat:0|intcomma }} تومان
+                    </td>
+                </tr>
+                {% endfor %}
+                <!-- Total Row -->
+                <tr class="bg-gray-50 font-medium">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">جمع کل</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ total_orders|intcomma }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ total_products_sold|intcomma }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ total_gross_sales|floatformat:0|intcomma }} تومان</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">-{{ total_discounts|floatformat:0|intcomma }} تومان</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ total_net_sales|floatformat:0|intcomma }} تومان</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Sales Chart
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    const salesChart = new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: {{ sales_labels|safe }},
+            datasets: [{
+                label: 'فروش خالص',
+                data: {{ sales_data }},
+                backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                borderColor: 'rgba(79, 70, 229, 1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: true },
+                    ticks: {
+                        callback: function(value) {
+                            return value.toLocaleString() + ' تومان';
+                        }
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // Orders Chart
+    const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+    const ordersChart = new Chart(ordersCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ orders_labels|safe }},
+            datasets: [{
+                label: 'تعداد سفارشات',
+                data: {{ orders_data }},
+                backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                borderColor: 'rgba(16, 185, 129, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: true },
+                    ticks: {
+                        precision: 0
+                    }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

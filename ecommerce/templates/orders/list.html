@@ -1,0 +1,154 @@
+{% extends 'admin/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">مدیریت سفارشات</h1>
+    <div class="flex space-x-2 space-x-reverse">
+        <button class="btn-indigo">
+            <i class="fas fa-file-export ml-2"></i> خروجی اکسل
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 mb-6">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">شماره سفارش</label>
+            <input type="text" name="order_id" value="{{ request.GET.order_id }}" 
+                   class="w-full p-2 border border-gray-300 rounded-md">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">وضعیت</label>
+            <select name="status" class="w-full p-2 border border-gray-300 rounded-md">
+                <option value="">همه</option>
+                <option value="pending" {% if request.GET.status == "pending" %}selected{% endif %}>در انتظار پرداخت</option>
+                <option value="processing" {% if request.GET.status == "processing" %}selected{% endif %}>در حال پردازش</option>
+                <option value="shipped" {% if request.GET.status == "shipped" %}selected{% endif %}>ارسال شده</option>
+                <option value="completed" {% if request.GET.status == "completed" %}selected{% endif %}>تکمیل شده</option>
+                <option value="cancelled" {% if request.GET.status == "cancelled" %}selected{% endif %}>لغو شده</option>
+            </select>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">از تاریخ</label>
+            <input type="date" name="start_date" value="{{ request.GET.start_date }}" 
+                   class="w-full p-2 border border-gray-300 rounded-md">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">تا تاریخ</label>
+            <input type="date" name="end_date" value="{{ request.GET.end_date }}" 
+                   class="w-full p-2 border border-gray-300 rounded-md">
+        </div>
+        <div class="flex items-end">
+            <button type="submit" class="btn-indigo w-full">
+                <i class="fas fa-filter ml-2"></i> فیلتر
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Orders Table -->
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">شماره سفارش</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">مشتری</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تاریخ</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">مبلغ</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">وضعیت</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">عملیات</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for order in orders %}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        #{{ order.id|stringformat:"06d" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ order.customer.name }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ order.created_at|date:"Y/m/d" }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {{ order.total|floatformat:2|intcomma }} تومان
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full 
+                            {% if order.status == 'completed' %}bg-green-100 text-green-800
+                            {% elif order.status == 'processing' %}bg-blue-100 text-blue-800
+                            {% elif order.status == 'shipped' %}bg-yellow-100 text-yellow-800
+                            {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {% if order.status == 'completed' %}تکمیل شده
+                            {% elif order.status == 'processing' %}در حال پردازش
+                            {% elif order.status == 'shipped' %}ارسال شده
+                            {% elif order.status == 'cancelled' %}لغو شده
+                            {% else %}در انتظار پرداخت{% endif %}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
+                        <a href="{% url 'dashboard:order_detail' order.id %}" class="text-indigo-600 hover:text-indigo-900 ml-3">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="#" class="text-blue-600 hover:text-blue-900 ml-3">
+                            <i class="fas fa-truck"></i>
+                        </a>
+                        <a href="#" class="text-red-600 hover:text-red-900 confirm-delete" data-id="{{ order.id }}">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <!-- Pagination -->
+    {% include 'partials/pagination.html' with page_obj=orders %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="modal-delete" class="fixed hidden inset-0 bg-gray-600 bg-opacity-50 z-50">
+    <div class="modal-dialog">
+        <form method="post" action="{% url 'dashboard:order_cancel' 0 %}" id="delete-form">
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="text-lg font-medium">لغو سفارش</h3>
+                </div>
+                <div class="modal-body">
+                    <p>آیا از لغو این سفارش اطمینان دارید؟</p>
+                    <textarea name="cancel_reason" rows="3" class="mt-3 w-full p-2 border border-gray-300 rounded-md" placeholder="دلیل لغو"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-gray" onclick="closeModal()">انصراف</button>
+                    <button type="submit" class="btn-red">لغو سفارش</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Delete confirmation modal
+    document.querySelectorAll('.confirm-delete').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const orderId = this.getAttribute('data-id');
+            const form = document.getElementById('delete-form');
+            form.action = form.action.replace('/0/', `/${orderId}/`);
+            document.getElementById('modal-delete').classList.remove('hidden');
+        });
+    });
+
+    function closeModal() {
+        document.getElementById('modal-delete').classList.add('hidden');
+    }
+</script>
+{% endblock %}
+{% endblock %}

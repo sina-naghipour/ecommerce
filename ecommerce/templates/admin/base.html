@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    {% include 'admin/head.html' %}
+</head>
+
+<body class="bg-gray-50 font-sans antialiased">
+    <!-- Dashboard Layout -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="hidden md:flex md:flex-shrink-0">
+            <div class="flex flex-col w-64 bg-indigo-900 text-white">
+                <!-- Logo -->
+                <div class="flex items-center justify-center h-16 px-4 bg-indigo-800">
+                    <span class="text-xl font-bold">پنل مدیریت <span class="text-indigo-300">لوکس</span></span>
+                </div>
+                {% include 'admin/sidebar.html' %}
+                <!-- User Profile -->
+                <div class="p-4 mt-auto border-t border-indigo-800">
+                    <div class="flex items-center">
+                        <svg class="w-10 h-10 rounded-full text-gray-400 bg-gray-100" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <path
+                                d="M12 4a4 4 0 014 4 4 4 0 01-4 4 4 4 0 01-4-4 4 4 0 014-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4z" />
+                        </svg>
+                        <div class="mr-3">
+                            <p class="text-sm font-medium text-white">مدیر سیستم</p>
+                            <a href="#" class="text-xs font-medium text-indigo-300 hover:text-white">مشاهده پروفایل</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex flex-col flex-1 overflow-hidden">
+            {% include 'admin/navbar.html' %}
+
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

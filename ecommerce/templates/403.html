@@ -1,0 +1,16 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-screen py-12 bg-gray-50">
+    <div class="text-center">
+        <h1 class="text-9xl font-bold text-indigo-600">403</h1>
+        <h2 class="mt-4 text-3xl font-medium text-gray-900">دسترسی غیرمجاز</h2>
+        <p class="mt-4 text-lg text-gray-600">شما مجوز دسترسی به این صفحه را ندارید.</p>
+        <div class="mt-6">
+            <a href="{% url 'dashboard:overview' %}" class="btn-indigo">
+                <i class="fas fa-arrow-left ml-2"></i> بازگشت به پیشخوان
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

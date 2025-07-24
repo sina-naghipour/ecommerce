@@ -1,0 +1,133 @@
+<div class="chart-container relative" dir="rtl">
+    <canvas {% if id %}id="{{ id }}"{% endif %} height="{{ height|default:300 }}"></canvas>
+    <div class="chart-legend mt-4 text-center"></div>
+    
+    <style>
+        .chart-container {
+            font-family: 'Vazir', sans-serif;
+        }
+        .chart-legend ul {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .chart-legend li {
+            display: flex;
+            align-items: center;
+            margin-left: 15px;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+        .chart-legend span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-left: 5px;
+            border-radius: 3px;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('{{ id }}').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: '{{ type|default:"bar" }}',
+                data: {
+                    labels: {{ labels|safe }},
+                    datasets: {{ datasets|safe }}
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false,
+                            rtl: true,
+                            labels: {
+                                font: {
+                                    family: 'Vazir'
+                                },
+                                boxWidth: 12,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            titleFont: {
+                                family: 'Vazir'
+                            },
+                            bodyFont: {
+                                family: 'Vazir'
+                            },
+                            footerFont: {
+                                family: 'Vazir'
+                            },
+                            rtl: true,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toLocaleString('fa-IR');
+                                        {% if currency %}
+                                        label += ' تومان';
+                                        {% endif %}
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: {{ beginAtZero|default:"true" }},
+                            grid: {
+                                display: true
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Vazir'
+                                },
+                                callback: function(value) {
+                                    {% if currency %}
+                                    return value.toLocaleString('fa-IR') + ' تومان';
+                                    {% else %}
+                                    return value.toLocaleString('fa-IR');
+                                    {% endif %}
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Vazir'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Generate custom legend
+            if (chart.options.plugins.legend.display) {
+                const legendContainer = document.querySelector(`#{{ id }}`).parentNode.querySelector('.chart-legend');
+                const legendItems = chart.data.datasets.map(dataset => {
+                    return `
+                        <li>
+                            <span style="background-color: ${dataset.backgroundColor}"></span>
+                            ${dataset.label}
+                        </li>
+                    `;
+                }).join('');
+                legendContainer.innerHTML = `<ul>${legendItems}</ul>`;
+            }
+        });
+    </script>
+</div>

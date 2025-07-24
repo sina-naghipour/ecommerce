@@ -1,0 +1,36 @@
+<div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100" dir="rtl">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-sm font-medium text-gray-500">{{ title }}</p>
+            <p class="mt-1 text-2xl font-semibold text-gray-900">
+                {% if currency %}{{ value|floatformat:0|intcomma }} تومان{% else %}{{ value|intcomma }}{% endif %}
+            </p>
+            {% if change %}
+            <p class="mt-2 text-xs {% if change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                {% if change > 0 %}+{% endif %}{{ change }}% نسبت به دوره قبل
+            </p>
+            {% endif %}
+        </div>
+        <div class="p-3 rounded-full {{ color_class|default:"bg-indigo-50 text-indigo-600" }}">
+            {% if icon == "revenue" %}
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {% elif icon == "orders" %}
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+            {% elif icon == "customers" %}
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+            {% elif icon == "products" %}
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            {% else %}
+            <i class="fas fa-{{ icon }}"></i>
+            {% endif %}
+        </div>
+    </div>
+</div>

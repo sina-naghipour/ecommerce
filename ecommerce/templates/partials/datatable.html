@@ -1,0 +1,63 @@
+<div class="data-table-container" dir="rtl">
+    <table id="{{ id }}" class="w-full whitespace-nowrap">
+        <thead class="text-right bg-gray-50">
+            <tr>
+                {% for column in columns %}
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    {{ column }}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for row in rows %}
+            <tr class="hover:bg-gray-50">
+                {% for cell in row %}
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ cell }}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <style>
+        .data-table-container table.dataTable {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }
+        .dataTables_wrapper .dataTables_filter {
+            text-align: left !important;
+        }
+        .dataTables_wrapper .dataTables_filter input {
+            margin-right: 0.5em;
+            margin-left: 0;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            margin: 0 2px;
+            padding: 5px 10px;
+        }
+        .dataTables_wrapper .dataTables_info {
+            padding-top: 0.755em;
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            $('#{{ id }}').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Persian.json'
+                },
+                dom: '<"flex justify-between items-center mb-4"lf>rt<"flex justify-between items-center mt-4"ip>',
+                initComplete: function() {
+                    $('.dataTables_filter label').contents().filter(function() {
+                        return this.nodeType === 3;
+                    }).remove();
+                    $('.dataTables_filter input').attr('placeholder', 'جستجو...');
+                },
+                responsive: true
+            });
+        });
+    </script>
+</div>

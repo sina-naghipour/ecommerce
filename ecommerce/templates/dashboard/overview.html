@@ -1,0 +1,213 @@
+{% extends 'admin/base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-800">پیشخوان مدیریت</h1>
+    <p class="text-gray-600">خوش آمدید! وضعیت فروشگاه شما امروز:</p>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 gap-6 mb-8 sm:grid-cols-2 lg:grid-cols-4">
+    <!-- Total Revenue -->
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500">درآمد کل</p>
+                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ total_revenue|floatformat:2|intcomma }} تومان</p>
+            </div>
+            <div class="p-3 rounded-full bg-indigo-50 text-indigo-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">{{ revenue_change }}% نسبت به دوره قبل</p>
+    </div>
+
+    <!-- Total Orders -->
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500">تعداد سفارشات</p>
+                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ total_orders|intcomma }}</p>
+            </div>
+            <div class="p-3 rounded-full bg-green-50 text-green-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">{{ order_change }}% نسبت به دوره قبل</p>
+    </div>
+
+    <!-- Customers -->
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500">مشتریان جدید</p>
+                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ new_customers|intcomma }}</p>
+            </div>
+            <div class="p-3 rounded-full bg-blue-50 text-blue-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">{{ customer_change }}% نسبت به دوره قبل</p>
+    </div>
+
+    <!-- Conversion Rate -->
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-500">نرخ تبدیل</p>
+                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ conversion_rate }}%</p>
+            </div>
+            <div class="p-3 rounded-full bg-purple-50 text-purple-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+            </div>
+        </div>
+        <p class="mt-2 text-xs text-gray-500">{{ conversion_change }}% نسبت به دوره قبل</p>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <!-- Revenue Chart -->
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-800">نمودار درآمد</h2>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 text-xs bg-indigo-100 text-indigo-800 rounded-full">30 روز</button>
+                <button class="px-3 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">90 روز</button>
+            </div>
+        </div>
+        <canvas id="revenueChart" height="300"></canvas>
+    </div>
+
+    <!-- Order Chart -->
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-800">روند سفارشات</h2>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 text-xs bg-indigo-100 text-indigo-800 rounded-full">روزانه</button>
+                <button class="px-3 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">هفتگی</button>
+            </div>
+        </div>
+        <canvas id="ordersChart" height="300"></canvas>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="mt-8">
+    <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-gray-800">سفارشات اخیر</h2>
+            <a href="{% url 'accounts:dashboard' %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">مشاهده همه</a>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">شماره سفارش</th>
+                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">مشتری</th>
+                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">تاریخ</th>
+                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">مبلغ</th>
+                        <th scope="col" class="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">وضعیت</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ order.id|stringformat:"06d" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.customer.name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.created_at|date:"Y/m/d" }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ order.total|floatformat:2|intcomma }} تومان</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full 
+                                {% if order.status == 'completed' %}text-green-800 bg-green-100
+                                {% elif order.status == 'pending' %}text-yellow-800 bg-yellow-100
+                                {% else %}text-red-800 bg-red-100{% endif %}">
+                                {% if order.status == 'completed' %}تکمیل شده{% elif order.status == 'pending' %}در انتظار{% else %}لغو شده{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Revenue Chart
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: {{ revenue_labels|safe }},
+            datasets: [{
+                label: 'درآمد',
+                data: {{ revenue_data }},
+                backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                borderColor: 'rgba(79, 70, 229, 1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: true }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+
+    // Orders Chart
+    const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+    const ordersChart = new Chart(ordersCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ order_labels|safe }},
+            datasets: [{
+                label: 'سفارشات',
+                data: {{ order_data }},
+                backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                borderColor: 'rgba(16, 185, 129, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: true }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}
