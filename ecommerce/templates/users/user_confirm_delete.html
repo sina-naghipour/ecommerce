@@ -1,0 +1,24 @@
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-800">حذف کاربر</h1>
+    <a href="{% url 'accounts:user_list' %}" class="btn-gray">
+        <i class="fas fa-arrow-left ml-2"></i> بازگشت
+    </a>
+</div>
+
+<div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+    <p class="mb-4">آیا از حذف کاربر <strong>{{ object.get_full_name }}</strong> اطمینان دارید؟ این عمل غیرقابل بازگشت است.</p>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex space-x-2 space-x-reverse">
+            <a href="{% url 'accounts:user_list' %}" class="btn-gray">انصراف</a>
+            <button type="submit" class="btn-red">
+                <i class="fas fa-trash ml-2"></i> تایید و حذف
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

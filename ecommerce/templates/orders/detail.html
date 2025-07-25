@@ -1,202 +1,115 @@
 {% extends 'admin/base.html' %}
-{% load humanize %}
 
 {% block content %}
 <div class="mb-6 flex justify-between items-center">
     <div>
-        <h1 class="text-2xl font-bold text-gray-800">سفارش #{{ order.id|stringformat:"06d" }}</h1>
-        <p class="text-gray-600">{{ order.created_at|date:"Y/m/d H:i" }}</p>
+        <h1 class="text-2xl font-bold text-gray-800">سفارش #{{ order.order_number }}</h1>
+        <p class="text-gray-500 mt-1">تاریخ ثبت: {{ order.created_at|date:"Y/m/d H:i" }}</p>
     </div>
-    <div class="flex space-x-2 space-x-reverse">
-        <a href="{% url 'dashboard:orders_list' %}" class="btn-gray">
+    <div class="flex space-x-3">
+        <a href="{% url 'orders:order_list' %}" class="btn-gray flex items-center px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700">
             <i class="fas fa-arrow-left ml-2"></i> بازگشت به لیست
         </a>
-        <button class="btn-indigo">
-            <i class="fas fa-print ml-2"></i> چاپ فاکتور
-        </button>
+        <a href="{% url 'orders:order_print' order.pk %}" class="btn-indigo flex items-center px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white" target="_blank">
+            <i class="fas fa-print ml-2"></i> چاپ سفارش
+        </a>
     </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Order Summary -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">خلاصه سفارش</h2>
-        <div class="space-y-4">
-            <div class="flex justify-between">
-                <span class="text-gray-600">وضعیت:</span>
-                <span class="font-medium">
-                    <span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full 
-                        {% if order.status == 'completed' %}bg-green-100 text-green-800
-                        {% elif order.status == 'processing' %}bg-blue-100 text-blue-800
-                        {% elif order.status == 'shipped' %}bg-yellow-100 text-yellow-800
-                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
-                        {% else %}bg-gray-100 text-gray-800{% endif %}">
-                        {% if order.status == 'completed' %}تکمیل شده
-                        {% elif order.status == 'processing' %}در حال پردازش
-                        {% elif order.status == 'shipped' %}ارسال شده
-                        {% elif order.status == 'cancelled' %}لغو شده
-                        {% else %}در انتظار پرداخت{% endif %}
-                    </span>
-                </span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-gray-600">تاریخ سفارش:</span>
-                <span class="font-medium">{{ order.created_at|date:"Y/m/d H:i" }}</span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-gray-600">روش پرداخت:</span>
-                <span class="font-medium">{{ order.get_payment_method_display }}</span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-gray-600">وضعیت پرداخت:</span>
-                <span class="font-medium">
-                    {% if order.payment_status == 'paid' %}
-                    <span class="text-green-600">پرداخت شده</span>
-                    {% else %}
-                    <span class="text-red-600">پرداخت نشده</span>
-                    {% endif %}
-                </span>
-            </div>
+    <!-- Order Details -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Order Status -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">وضعیت سفارش</h2>
+                {% include 'partials/status_form.html' %}
         </div>
-
-        <div class="mt-6 pt-6 border-t border-gray-200">
-            <h3 class="text-md font-medium text-gray-900 mb-2">تغییر وضعیت سفارش</h3>
-            <form method="post" action="{% url 'dashboard:order_update_status' order.id %}">
-                {% csrf_token %}
-                <div class="flex space-x-2 space-x-reverse">
-                    <select name="status" class="flex-1 p-2 border border-gray-300 rounded-md">
-                        <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>در حال پردازش</option>
-                        <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>ارسال شده</option>
-                        <option value="completed" {% if order.status == 'completed' %}selected{% endif %}>تکمیل شده</option>
-                    </select>
-                    <button type="submit" class="btn-indigo">
-                        <i class="fas fa-save ml-2"></i> ذخیره
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Customer Info -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">اطلاعات مشتری</h2>
-        <div class="space-y-4">
-            <div>
-                <h3 class="text-sm font-medium text-gray-700 mb-1">نام کامل</h3>
-                <p class="text-gray-900">{{ order.customer.name }}</p>
-            </div>
-            <div>
-                <h3 class="text-sm font-medium text-gray-700 mb-1">شماره تماس</h3>
-                <p class="text-gray-900">{{ order.customer.phone }}</p>
-            </div>
-            <div>
-                <h3 class="text-sm font-medium text-gray-700 mb-1">آدرس ایمیل</h3>
-                <p class="text-gray-900">{{ order.customer.email }}</p>
-            </div>
-        </div>
-
-        <div class="mt-6 pt-6 border-t border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">آدرس ارسال</h2>
-            <div class="text-gray-700">
-                <p>{{ order.shipping_address.address_line1 }}</p>
-                <p>{{ order.shipping_address.city }}, {{ order.shipping_address.postal_code }}</p>
-                <p>{{ order.shipping_address.province }}</p>
+        
+        <!-- Order Items -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">محصولات سفارش</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">محصول</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">قیمت واحد</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تعداد</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">جمع</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for item in order.items.all %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    {% if item.product.main_image %}
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img class="h-10 w-10 rounded-md object-cover" src="{{ item.product.main_image.url }}" alt="{{ item.product.name }}">
+                                    </div>
+                                    {% endif %}
+                                    <div class="mr-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ item.product.name }}</div>
+                                        <div class="text-sm text-gray-500">{{ item.product.sku }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.price }} تومان</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.quantity }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ item.total_price }} تومان</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="px-6 py-4 text-right text-sm font-medium text-gray-500">جمع کل:</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ order.total_price }} تومان</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
     </div>
-
-    <!-- Order Items -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 lg:col-span-1">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">محصولات سفارش</h2>
-        <div class="space-y-4">
-            {% for item in order.items.all %}
-            <div class="flex items-start border-b border-gray-100 pb-4">
-                <div class="flex-shrink-0 h-16 w-16">
-                    <img class="h-16 w-16 rounded-md object-cover" 
-                         src="{{ item.product.thumbnail.url|default:'/static/images/placeholder-product.png' }}" 
-                         alt="{{ item.product.name }}">
+    
+    <!-- Customer & Shipping -->
+    <div class="space-y-6">
+        <!-- Customer Info -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">اطلاعات مشتری</h2>
+            <div class="space-y-3">
+                <div>
+                    <p class="text-sm text-gray-500">نام کامل:</p>
+                    <p class="text-sm font-medium">{{ order.customer.user.first_name }} {{ order.customer.user.last_name }} </p>
                 </div>
-                <div class="mr-4 flex-1">
-                    <h3 class="text-sm font-medium text-gray-900">{{ item.product.name }}</h3>
-                    <p class="text-sm text-gray-500">تعداد: {{ item.quantity }}</p>
-                    <p class="text-sm text-gray-900 mt-1">{{ item.price|floatformat:2|intcomma }} تومان</p>
+                <div>
+                    <p class="text-sm text-gray-500">شماره تماس:</p>
+                    <p class="text-sm font-medium">{{ order.customer.phone }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">آدرس ایمیل:</p>
+                    <p class="text-sm font-medium">{{ order.customer.user.email }}</p>
                 </div>
             </div>
-            {% endfor %}
         </div>
-
-        <div class="mt-6 pt-6 border-t border-gray-200">
-            <div class="flex justify-between py-2">
-                <span class="text-gray-600">جمع کل:</span>
-                <span class="font-medium">{{ order.subtotal|floatformat:2|intcomma }} تومان</span>
-            </div>
-            <div class="flex justify-between py-2">
-                <span class="text-gray-600">هزینه ارسال:</span>
-                <span class="font-medium">{{ order.shipping_cost|floatformat:2|intcomma }} تومان</span>
-            </div>
-            <div class="flex justify-between py-2">
-                <span class="text-gray-600">تخفیف:</span>
-                <span class="font-medium text-red-600">-{{ order.discount|floatformat:2|intcomma }} تومان</span>
-            </div>
-            <div class="flex justify-between py-2 border-t border-gray-200 mt-2">
-                <span class="text-gray-900 font-bold">مبلغ قابل پرداخت:</span>
-                <span class="font-bold text-lg">{{ order.total|floatformat:2|intcomma }} تومان</span>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Shipping Info -->
-<div class="mt-6 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-    <h2 class="text-lg font-medium text-gray-900 mb-4">اطلاعات ارسال</h2>
-    <form method="post" action="{% url 'dashboard:order_update_shipping' order.id %}">
-        {% csrf_token %}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">شرکت ارسال کننده</label>
-                <select name="shipping_company" class="w-full p-2 border border-gray-300 rounded-md">
-                    <option value="post" {% if order.shipping_company == 'post' %}selected{% endif %}>پست</option>
-                    <option value="tipax" {% if order.shipping_company == 'tipax' %}selected{% endif %}>تیپاکس</option>
-                    <option value="snap" {% if order.shipping_company == 'snap' %}selected{% endif %}>اسنپ</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">شماره پیگیری</label>
-                <input type="text" name="tracking_number" value="{{ order.tracking_number|default:'' }}" 
-                       class="w-full p-2 border border-gray-300 rounded-md">
-            </div>
-            <div class="flex items-end">
-                <button type="submit" class="btn-indigo w-full">
-                    <i class="fas fa-truck ml-2"></i> ثبت اطلاعات ارسال
-                </button>
+        
+        <!-- Shipping Info -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">اطلاعات ارسال</h2>
+            <div class="space-y-3">
+                <div>
+                    <p class="text-sm text-gray-500">آدرس:</p>
+                    <p class="text-sm font-medium">{{ order.address.address }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">کد پستی:</p>
+                    <p class="text-sm font-medium">{{ order.address.postal_code }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">توضیحات:</p>
+                    <p class="text-sm font-medium">{{ order.notes|default:"-" }}</p>
+                </div>
             </div>
         </div>
-    </form>
-</div>
-
-<!-- Order Notes -->
-<div class="mt-6 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-    <h2 class="text-lg font-medium text-gray-900 mb-4">یادداشت‌های سفارش</h2>
-    <form method="post" action="{% url 'dashboard:order_add_note' order.id %}">
-        {% csrf_token %}
-        <textarea name="note" rows="3" class="w-full p-2 border border-gray-300 rounded-md mb-4" placeholder="یادداشت جدید..."></textarea>
-        <button type="submit" class="btn-indigo">
-            <i class="fas fa-plus ml-2"></i> افزودن یادداشت
-        </button>
-    </form>
-
-    <div class="mt-6 space-y-4">
-        {% for note in order.notes.all %}
-        <div class="border-l-4 border-indigo-200 pl-4 py-2">
-            <div class="flex justify-between items-center">
-                <p class="text-sm font-medium text-gray-900">{{ note.author.get_full_name }}</p>
-                <p class="text-xs text-gray-500">{{ note.created_at|date:"Y/m/d H:i" }}</p>
-            </div>
-            <p class="text-sm text-gray-700 mt-1">{{ note.content }}</p>
-        </div>
-        {% empty %}
-        <p class="text-sm text-gray-500">یادداشتی ثبت نشده است</p>
-        {% endfor %}
     </div>
 </div>
 {% endblock %}

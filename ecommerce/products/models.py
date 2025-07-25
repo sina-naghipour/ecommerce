@@ -109,19 +109,26 @@ class Product(models.Model):
     def __str__(self):
         return self.name
     
-def save(self, *args, **kwargs):
-    if not self.slug:
-        self.slug = slugify(self.name, allow_unicode=True)
-    
-    if self.pk:
-        try:
-            old = Product.objects.get(pk=self.pk)
-            if old.main_image and old.main_image != self.main_image:
-                old.main_image.delete(save=False)
-        except Product.DoesNotExist:
-            pass
-    
-    super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        
+        if not self.sku:
+            category_part = slugify(self.category.name[:3]).upper() if self.category else 'PROD'
+            name_part = slugify(self.name[:3]).upper() if self.name else 'GEN'
+            random_part = uuid.uuid4().hex[:6].upper()  # 6-character random string
+            
+            self.sku = f"{category_part}-{name_part}-{random_part}"
+        
+        if self.pk:
+            try:
+                old = Product.objects.get(pk=self.pk)
+                if old.main_image and old.main_image != self.main_image:
+                    old.main_image.delete(save=False)
+            except Product.DoesNotExist:
+                pass
+        
+        super().save(*args, **kwargs)
     
     @property
     def current_price(self):

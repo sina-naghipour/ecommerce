@@ -4,21 +4,21 @@
 {% block content %}
 <div class="mb-6 flex justify-between items-center">
     <div>
-        <h1 class="text-2xl font-bold text-gray-800">پروفایل کاربر</h1>
+        <h1 class="text-2xl font-bold text-gray-800">پروفایل کاربر: {{ user.get_full_name }}</h1>
         <p class="text-gray-600">عضو شده در {{ user.date_joined|date:"Y/m/d" }}</p>
     </div>
     <div class="flex space-x-2 space-x-reverse">
-        <a href="{% url 'dashboard:users_list' %}" class="btn-gray">
+        <a href="{% url 'accounts:user_list' %}" class="btn-gray">
             <i class="fas fa-arrow-left ml-2"></i> بازگشت به لیست
         </a>
-        <a href="{% url 'dashboard:user_edit' user.id %}" class="btn-indigo">
+        <a href="{% url 'accounts:user_edit' user.id %}" class="btn-indigo">
             <i class="fas fa-edit ml-2"></i> ویرایش پروفایل
         </a>
     </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- User Profile -->
+    <!-- User Profile Card -->
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 lg:col-span-1">
         <div class="flex flex-col items-center">
             <img class="h-24 w-24 rounded-full object-cover mb-4" 
@@ -30,8 +30,10 @@
                 <span class="text-red-600">مدیر سیستم</span>
                 {% elif user.is_staff %}
                 <span class="text-indigo-600">کارمند</span>
+                {% elif user.customer %}
+                <span class="text-green-600">مشتری</span>
                 {% else %}
-                مشتری
+                <span class="text-gray-600">کاربر عادی</span>
                 {% endif %}
             </p>
             
@@ -46,18 +48,28 @@
                     </span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">تایید ایمیل:</span>
+                    <span class="text-gray-600">ایمیل:</span>
+                    <span class="font-medium">{{ user.email }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">تلفن همراه:</span>
                     <span class="font-medium">
-                        {% if user.email_verified %}
-                        <span class="text-green-600">تایید شده</span>
+                        {% if user.customer %}
+                            {{ user.customer.phone|default:"-" }}
                         {% else %}
-                        <span class="text-red-600">تایید نشده</span>
+                            -
                         {% endif %}
                     </span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">تلفن همراه:</span>
-                    <span class="font-medium">{{ user.phone|default:"-" }}</span>
+                    <span class="text-gray-600">تاریخ تولد:</span>
+                    <span class="font-medium">
+                        {% if user.customer and user.customer.birth_date %}
+                            {{ user.customer.birth_date|date:"Y/m/d" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-600">آخرین ورود:</span>
@@ -67,64 +79,90 @@
         </div>
     </div>
 
-    <!-- User Stats -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">آمار کاربر</h2>
-        <div class="grid grid-cols-2 gap-4">
-            <div class="p-4 bg-blue-50 rounded-lg">
-                <p class="text-sm font-medium text-blue-600">کل سفارشات</p>
-                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ orders_count }}</p>
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- User Stats -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">آمار کاربر</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm font-medium text-blue-600">کل سفارشات</p>
+                    <p class="mt-1 text-2xl font-semibold text-gray-900">{{ orders_count }}</p>
+                </div>
+                <div class="p-4 bg-green-50 rounded-lg">
+                    <p class="text-sm font-medium text-green-600">سفارشات تکمیل شده</p>
+                    <p class="mt-1 text-2xl font-semibold text-gray-900">{{ completed_orders }}</p>
+                </div>
+                <div class="p-4 bg-purple-50 rounded-lg">
+                    <p class="text-sm font-medium text-purple-600">کل هزینه‌ها</p>
+                    <p class="mt-1 text-2xl font-semibold text-gray-900">{{ total_spent|floatformat:0|intcomma }} تومان</p>
+                </div>
+                <div class="p-4 bg-yellow-50 rounded-lg">
+                    <p class="text-sm font-medium text-yellow-600">میانگین سبد خرید</p>
+                    <p class="mt-1 text-2xl font-semibold text-gray-900">{{ avg_order|floatformat:0|intcomma }} تومان</p>
+                </div>
             </div>
-            <div class="p-4 bg-green-50 rounded-lg">
-                <p class="text-sm font-medium text-green-600">سفارشات تکمیل شده</p>
-                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ completed_orders }}</p>
-            </div>
-            <div class="p-4 bg-purple-50 rounded-lg">
-                <p class="text-sm font-medium text-purple-600">کل هزینه‌ها</p>
-                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ total_spent|floatformat:2|intcomma }} تومان</p>
-            </div>
-            <div class="p-4 bg-yellow-50 rounded-lg">
-                <p class="text-sm font-medium text-yellow-600">میانگین سبد خرید</p>
-                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ avg_order|floatformat:2|intcomma }} تومان</p>
-            </div>
-        </div>
 
-        <div class="mt-6 pt-6 border-t border-gray-200">
-            <h3 class="text-md font-medium text-gray-900 mb-2">تغییر وضعیت کاربر</h3>
-            <form method="post" action="{% url 'dashboard:user_toggle_status' user.id %}">
-                {% csrf_token %}
-                <div class="flex space-x-2 space-x-reverse">
+            <!-- Status Toggle -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-md font-medium text-gray-900 mb-2">تغییر وضعیت کاربر</h3>
+                <form method="post" action="{% url 'accounts:user_toggle_status' user.id %}">
+                    {% csrf_token %}
                     <button type="submit" class="btn-{% if user.is_active %}red{% else %}indigo{% endif %} w-full">
                         <i class="fas {% if user.is_active %}fa-lock{% else %}fa-unlock{% endif %} ml-2"></i>
-                        {% if user.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}
+                        {% if user.is_active %}غیرفعال کردن حساب{% else %}فعال کردن حساب{% endif %}
                     </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Addresses -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">آدرس‌ها</h2>
-        <div class="space-y-4">
-            {% for address in user.addresses.all %}
-            <div class="border border-gray-200 rounded-md p-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-medium text-gray-900">{{ address.title }}</h3>
-                        <p class="text-sm text-gray-600 mt-1">{{ address.address_line1 }}</p>
-                        <p class="text-sm text-gray-600">{{ address.city }}، {{ address.postal_code }}</p>
-                        <p class="text-sm text-gray-600">{{ address.province }}</p>
-                    </div>
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                        {% if address.is_default %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
-                        {% if address.is_default %}پیش فرض{% else %}{% endif %}
-                    </span>
-                </div>
+                </form>
             </div>
-            {% empty %}
-            <p class="text-sm text-gray-500">هیچ آدرسی ثبت نشده است</p>
-            {% endfor %}
+        </div>
+
+        <!-- Addresses -->
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-medium text-gray-900">آدرس‌ها</h2>
+                <a href="{% url 'accounts:user_add_address' user.id %}" class="btn-indigo text-sm">
+                    <i class="fas fa-plus ml-2"></i> افزودن آدرس
+                </a>
+            </div>
+            <div class="space-y-4">
+                {% if user.customer %}
+                    {% for address in user.customer.addresses.all %}
+                    <div class="border border-gray-200 rounded-md p-4 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-medium text-gray-900">{{ address.title }}</h3>
+                                <p class="text-sm text-gray-600 mt-1">{{ address.receiver_name }} - {{ address.phone }}</p>
+                                <p class="text-sm text-gray-600 mt-1">{{ address.address }}</p>
+                                <p class="text-sm text-gray-600">{{ address.city }}، {{ address.postal_code }}</p>
+                                <p class="text-sm text-gray-600">{{ address.province }}</p>
+                            </div>
+                            <div class="flex space-x-2 space-x-reverse">
+                                <a href="{% url 'accounts:user_edit_address' address.id %}" class="text-blue-600 hover:text-blue-800" title="ویرایش">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'accounts:user_delete_address' address.id %}" class="text-red-600 hover:text-red-800 confirm-delete" title="حذف">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% if not address.is_default %}
+                                <a href="{% url 'accounts:user_set_default_address' address.id %}" class="text-green-600 hover:text-green-800" title="تنظیم به عنوان پیش‌فرض">
+                                    <i class="fas fa-star"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if address.is_default %}
+                        <span class="mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                            <i class="fas fa-check-circle mr-1"></i> پیش‌فرض
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-sm text-gray-500">هیچ آدرسی ثبت نشده است</p>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-sm text-gray-500">هیچ آدرسی ثبت نشده است</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
@@ -154,24 +192,20 @@
                         {{ order.created_at|date:"Y/m/d" }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ order.total|floatformat:2|intcomma }} تومان
+                        {{ order.total_price|floatformat:0|intcomma }} تومان
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="inline-flex px-2 text-xs font-semibold leading-5 rounded-full 
-                            {% if order.status == 'completed' %}bg-green-100 text-green-800
-                            {% elif order.status == 'processing' %}bg-blue-100 text-blue-800
+                            {% if order.status == 'delivered' %}bg-green-100 text-green-800
+                            {% elif order.status == 'paid' %}bg-blue-100 text-blue-800
                             {% elif order.status == 'shipped' %}bg-yellow-100 text-yellow-800
                             {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
                             {% else %}bg-gray-100 text-gray-800{% endif %}">
-                            {% if order.status == 'completed' %}تکمیل شده
-                            {% elif order.status == 'processing' %}در حال پردازش
-                            {% elif order.status == 'shipped' %}ارسال شده
-                            {% elif order.status == 'cancelled' %}لغو شده
-                            {% else %}در انتظار پرداخت{% endif %}
+                            {{ order.get_status_display }}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                        <a href="{% url 'dashboard:order_detail' order.id %}" class="text-indigo-600 hover:text-indigo-900 ml-3">
+                        <a href="{% url 'orders:order_detail' order.id %}" class="text-indigo-600 hover:text-indigo-900 ml-3">
                             <i class="fas fa-eye"></i>
                         </a>
                     </td>
@@ -188,35 +222,45 @@
     </div>
     
     <div class="mt-4 flex justify-end">
-        <a href="{% url 'dashboard:user_orders' user.id %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+        <a href="{% url 'orders:user_orders' user.id %}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
             مشاهده همه سفارشات <i class="fas fa-arrow-left mr-1"></i>
         </a>
     </div>
 </div>
 
-<!-- User Notes -->
-<div class="mt-6 bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-    <h2 class="text-lg font-medium text-gray-900 mb-4">یادداشت‌های کاربر</h2>
-    <form method="post" action="{% url 'dashboard:user_add_note' user.id %}">
-        {% csrf_token %}
-        <textarea name="note" rows="3" class="w-full p-2 border border-gray-300 rounded-md mb-4" placeholder="یادداشت جدید..."></textarea>
-        <button type="submit" class="btn-indigo">
-            <i class="fas fa-plus ml-2"></i> افزودن یادداشت
-        </button>
-    </form>
 
-    <div class="mt-6 space-y-4">
-        {% for note in user.notes.all %}
-        <div class="border-l-4 border-indigo-200 pl-4 py-2">
-            <div class="flex justify-between items-center">
-                <p class="text-sm font-medium text-gray-900">{{ note.admin.get_full_name }}</p>
-                <p class="text-xs text-gray-500">{{ note.created_at|date:"Y/m/d H:i" }}</p>
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="fixed hidden inset-0 bg-gray-600 bg-opacity-50 z-50">
+    <div class="modal-dialog relative top-1/4 mx-auto p-5 w-full max-w-md">
+        <div class="modal-content bg-white rounded-lg shadow-xl">
+            <div class="modal-header p-4 border-b">
+                <h3 class="text-lg font-medium">حذف آدرس</h3>
             </div>
-            <p class="text-sm text-gray-700 mt-1">{{ note.content }}</p>
+            <div class="modal-body p-4">
+                <p>آیا از حذف این آدرس اطمینان دارید؟</p>
+            </div>
+            <div class="modal-footer p-4 border-t flex justify-end space-x-3 space-x-reverse">
+                <button type="button" onclick="closeDeleteModal()" class="btn-gray">انصراف</button>
+                <a href="#" id="delete-confirm" class="btn-red">تایید و حذف</a>
+            </div>
         </div>
-        {% empty %}
-        <p class="text-sm text-gray-500">یادداشتی ثبت نشده است</p>
-        {% endfor %}
     </div>
 </div>
+
+{% block scripts %}
+<script>
+    // Delete confirmation modal
+    document.querySelectorAll('.confirm-delete').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('delete-confirm').href = this.href;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        });
+    });
+
+    function closeDeleteModal() {
+        document.getElementById('delete-modal').classList.add('hidden');
+    }
+</script>
+{% endblock %}
 {% endblock %}

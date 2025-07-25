@@ -4,7 +4,7 @@
 {% block content %}
 <div class="mb-6 flex justify-between items-center">
     <h1 class="text-2xl font-bold text-gray-800">مدیریت کاربران</h1>
-    <a href="{% url 'dashboard:user_add' %}" class="btn-indigo">
+    <a href="{% url 'accounts:dashboard' %}" class="btn-indigo">
         <i class="fas fa-plus ml-2"></i> کاربر جدید
     </a>
 </div>
@@ -14,16 +14,17 @@
     <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">جستجو</label>
-            <input type="text" name="q" value="{{ request.GET.q }}" 
-                   class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="نام، ایمیل یا شماره">
+            <input type="text" name="q" value="{{ request.GET.q }}"
+                class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="نام، ایمیل یا شماره">
         </div>
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">نوع کاربر</label>
-            <select name="type" class="w-full p-2 border border-gray-300 rounded-md">
+            <select name="role" class="w-full p-2 border border-gray-300 rounded-md">
                 <option value="">همه</option>
-                <option value="customer" {% if request.GET.type == "customer" %}selected{% endif %}>مشتری</option>
-                <option value="staff" {% if request.GET.type == "staff" %}selected{% endif %}>کارمند</option>
-                <option value="admin" {% if request.GET.type == "admin" %}selected{% endif %}>مدیر</option>
+                <option value="customer" {% if request.GET.role == "customer" %}selected{% endif %}>مشتری</option>
+                <option value="staff" {% if request.GET.role == "staff" %}selected{% endif %}>کارمند</option>
+                <option value="admin" {% if request.GET.role == "admin" %}selected{% endif %}>مدیر</option>
             </select>
         </div>
         <div>
@@ -48,12 +49,17 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">کاربر</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اطلاعات تماس</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تاریخ عضویت</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">سفارشات</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">وضعیت</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">عملیات</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">کاربر
+                    </th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">اطلاعات
+                        تماس</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تاریخ
+                        عضویت</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">نقش</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">وضعیت
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">عملیات
+                    </th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -62,106 +68,125 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="flex items-center">
                             <div class="flex-shrink-0 h-10 w-10">
-                                <img class="h-10 w-10 rounded-full object-cover" 
-                                     src="{{ user.profile.image.url|default:'/static/images/avatar-placeholder.png' }}" 
-                                     alt="{{ user.get_full_name }}">
+                                <img class="h-10 w-10 rounded-full object-cover"
+                                    src="{{ user.profile.image.url|default:'/static/images/avatar-placeholder.png' }}"
+                                    alt="{{ user.get_full_name }}">
                             </div>
                             <div class="mr-4">
                                 <div class="text-sm font-medium text-gray-900">{{ user.get_full_name }}</div>
-                                <div class="text-sm text-gray-500">
-                                    {% if user.is_superuser %}
-                                    <span class="text-red-600">مدیر سیستم</span>
-                                    {% elif user.is_staff %}
-                                    <span class="text-indigo-600">کارمند</span>
-                                    {% else %}
-                                    مشتری
-                                    {% endif %}
-                                </div>
+                                <div class="text-sm text-gray-500">ID: {{ user.id }}</div>
                             </div>
                         </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div>{{ user.email }}</div>
-                        <div>{{ user.phone|default:"-" }}</div>
+                        <div>
+                            {% if user.customer %}
+                            {{ user.customer.phone|default:"-" }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ user.date_joined|date:"Y/m/d" }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ user.orders.count }} سفارش
+                        {% if user.is_superuser %}
+                        <span class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">مدیر سیستم</span>
+                        {% elif user.is_staff %}
+                        <span class="px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-800">کارمند</span>
+                        {% elif user.customer %}
+                        <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">مشتری</span>
+                        {% else %}
+                        <span class="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">کاربر عادی</span>
+                        {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                        <span
+                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                             {% if user.is_active %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
                             {% if user.is_active %}فعال{% else %}غیرفعال{% endif %}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                        <a href="{% url 'dashboard:user_detail' user.id %}" class="text-indigo-600 hover:text-indigo-900 ml-3">
+                        <a href="{% url 'accounts:user_detail' user.id %}"
+                            class="text-indigo-600 hover:text-indigo-900 ml-3" title="مشاهده">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="{% url 'dashboard:user_edit' user.id %}" class="text-blue-600 hover:text-blue-900 ml-3">
+                        <a href="{% url 'accounts:user_edit' user.id %}" class="text-blue-600 hover:text-blue-900 ml-3"
+                            title="ویرایش">
                             <i class="fas fa-edit"></i>
                         </a>
+                        <a href="{% url 'orders:user_orders' user.id %}"
+                            class="text-purple-600 hover:text-purple-900 ml-3" title="مشاهده سفارشات">
+                            <i class="fas fa-shopping-cart"></i>
+                        </a>
                         {% if not user.is_superuser %}
-                        <a href="#" class="text-red-600 hover:text-red-900 confirm-delete" data-id="{{ user.id }}">
+                        <a href="#"
+                            class="text-{% if user.is_active %}red{% else %}green{% endif %}-600 hover:text-{% if user.is_active %}red{% else %}green{% endif %}-900 confirm-toggle ml-3"
+                            data-id="{{ user.id }}" data-action="{% url 'accounts:user_toggle_status' user.id %}"
+                            title="{% if user.is_active %}غیرفعال کردن{% else %}فعال کردن{% endif %}">
                             <i class="fas {% if user.is_active %}fa-lock{% else %}fa-unlock{% endif %}"></i>
                         </a>
                         {% endif %}
                     </td>
                 </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">هیچ کاربری یافت نشد</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <!-- Pagination -->
-    {% include 'partials/pagination.html' with page_obj=users %}
 </div>
 
 <!-- Status Change Modal -->
-<div id="modal-status" class="fixed hidden inset-0 bg-gray-600 bg-opacity-50 z-50">
-    <div class="modal-dialog">
-        <form method="post" action="{% url 'dashboard:user_toggle_status' 0 %}" id="status-form">
-            {% csrf_token %}
-            <div class="modal-content">
-                <div class="modal-header">
+<div id="toggle-modal" class="fixed hidden inset-0 bg-gray-600 bg-opacity-50 z-50">
+    <div class="modal-dialog relative top-1/4 mx-auto p-5 w-full max-w-md">
+        <div class="modal-content bg-white rounded-lg shadow-xl">
+            <form method="post" id="toggle-form">
+                {% csrf_token %}
+                <div class="modal-header p-4 border-b">
                     <h3 class="text-lg font-medium">تغییر وضعیت کاربر</h3>
                 </div>
-                <div class="modal-body">
-                    <p id="status-message">آیا از تغییر وضعیت این کاربر اطمینان دارید؟</p>
+                <div class="modal-body p-4">
+                    <p id="toggle-message">آیا از تغییر وضعیت این کاربر اطمینان دارید؟</p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-gray" onclick="closeModal()">انصراف</button>
+                <div class="modal-footer p-4 border-t flex justify-end space-x-3 space-x-reverse">
+                    <button type="button" onclick="closeModal()" class="btn-gray">انصراف</button>
                     <button type="submit" class="btn-indigo">تایید</button>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
 {% block scripts %}
 <script>
-    // Status change modal
-    document.querySelectorAll('.confirm-delete').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+    // Status toggle modal
+    document.querySelectorAll('.confirm-toggle').forEach(btn => {
+        btn.addEventListener('click', function (e) {
             e.preventDefault();
-            const userId = this.getAttribute('data-id');
-            const form = document.getElementById('status-form');
-            form.action = form.action.replace('/0/', `/${userId}/`);
-            
+            const form = document.getElementById('toggle-form');
+            form.action = this.getAttribute('data-action');
+
             const icon = this.querySelector('i');
             if (icon.classList.contains('fa-lock')) {
-                document.getElementById('status-message').textContent = 'آیا از غیرفعال کردن این کاربر اطمینان دارید؟';
+                document.getElementById('toggle-message').textContent =
+                    'آیا از غیرفعال کردن این کاربر اطمینان دارید؟';
             } else {
-                document.getElementById('status-message').textContent = 'آیا از فعال کردن این کاربر اطمینان دارید؟';
+                document.getElementById('toggle-message').textContent =
+                    'آیا از فعال کردن این کاربر اطمینان دارید؟';
             }
-            
-            document.getElementById('modal-status').classList.remove('hidden');
+
+            document.getElementById('toggle-modal').classList.remove('hidden');
         });
     });
 
     function closeModal() {
-        document.getElementById('modal-status').classList.add('hidden');
+        document.getElementById('toggle-modal').classList.add('hidden');
     }
 </script>
 {% endblock %}

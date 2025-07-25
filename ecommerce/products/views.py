@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import Product, InventoryLog, Category
 from .forms import ProductForm, InventoryAdjustmentForm, ProductFilterForm
 from django.http import JsonResponse
-
+import uuid
 class ProductsList(LoginRequiredMixin, ListView):
     model = Product
     template_name = 'products/list.html'
@@ -48,10 +48,24 @@ class ProductsAdd(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('products:products_list')
     
     def form_valid(self, form):
+        # Set the created_by user
         form.instance.created_by = self.request.user
+        
+        # Generate SKU if not provided (though our form won't provide it)
+        if not form.instance.sku:
+            form.instance.sku = self.generate_sku(form.instance)
+        
         response = super().form_valid(form)
         messages.success(self.request, 'محصول با موفقیت ایجاد شد.')
         return response
+    
+    def generate_sku(self, product):
+        """Generate a standardized SKU for products"""
+        # Get components
+        name_code = (product.name[:3] if product.name else 'GEN').upper()
+        random_code2 = uuid.uuid4().hex[:6].upper()  # 6-character random string
+        
+        return f"SKU-{name_code}-{random_code2}"
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

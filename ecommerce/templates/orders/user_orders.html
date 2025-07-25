@@ -2,7 +2,9 @@
 
 {% block content %}
 <div class="mb-6 flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-gray-800">لیست سفارشات</h1>
+    <h1 class="text-2xl font-bold text-gray-800">سفارشات کاربر: {{ target_user.get_full_name }}</h1>
+    
+    <!-- Status Filter Tabs -->
     <div class="flex space-x-3">
         <div class="flex space-x-2">
             <a href="?status=" class="btn-gray px-3 py-1 rounded-md {% if not request.GET.status %}bg-gray-200{% endif %}">همه</a>
@@ -17,12 +19,12 @@
 </div>
 
 <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+    {% if orders %}
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">شماره سفارش</th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">مشتری</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">تاریخ</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">مبلغ کل</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">وضعیت پرداخت</th>
@@ -34,15 +36,7 @@
                 {% for order in orders %}
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {{ order.order_number }}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="mr-4">
-                                <div class="text-sm font-medium text-gray-900">{{ order.customer.full_name }}</div>
-                                <div class="text-sm text-gray-500">{{ order.customer.phone }}</div>
-                            </div>
-                        </div>
+                        #{{ order.order_number }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {{ order.created_at|date:"Y/m/d H:i" }}
@@ -66,12 +60,10 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <a href="{% url 'orders:order_detail' order.pk %}" class="text-indigo-600 hover:text-indigo-900 mr-3">مشاهده</a>
+                        {% if order.status != 'cancelled' %}
                         <a href="{% url 'orders:order_print' order.pk %}" class="text-gray-600 hover:text-gray-900" target="_blank">چاپ</a>
+                        {% endif %}
                     </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">هیچ سفارشی یافت نشد</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -108,6 +100,11 @@
                 </a>
             {% endif %}
         </nav>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="text-center py-8">
+        <p class="text-gray-500">هیچ سفارشی یافت نشد.</p>
     </div>
     {% endif %}
 </div>

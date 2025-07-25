@@ -1,0 +1,24 @@
+<div id="status-section">
+    <form method="post" action="{% url 'orders:update_status' order.pk %}" 
+          hx-post="{% url 'orders:update_status' order.pk %}" 
+          hx-target="#status-section">
+        {% csrf_token %}
+        <div class="flex items-center space-x-4">
+            <select name="status" 
+                    class="form-select block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                {% for value, label in order.get_status_choices %}
+                    <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-indigo px-4 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white">
+                ذخیره
+            </button>
+            <span class="px-3 py-1 rounded-full text-sm font-medium 
+                {% if order.status == 'delivered' %}bg-green-100 text-green-800
+                {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                {{ order.get_status_display }}
+            </span>
+        </div>
+    </form>
+</div>

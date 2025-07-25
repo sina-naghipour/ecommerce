@@ -12,7 +12,7 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = [
             'name', 'category', 'description', 
-            'base_price', 'discount_price', 'sku',
+            'base_price', 'discount_price',
             'stock', 'threshold', 'is_active',
             'is_featured', 'is_available', 'main_image'
         ]
@@ -26,6 +26,13 @@ class ProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['category'].queryset = Category.objects.filter(is_active=True)
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        # Remove any SKU validation if it exists
+        if 'sku' in self.errors:
+            del self.errors['sku']
+        return cleaned_data
     
     def clean_main_image(self):
         image = self.cleaned_data.get('main_image')
@@ -60,7 +67,6 @@ class ProductForm(forms.ModelForm):
             
         except Exception as e:
             raise ValidationError("تصویر معتبر نیست")
-
 class ProductImageForm(forms.ModelForm):
     class Meta:
         model = ProductImage

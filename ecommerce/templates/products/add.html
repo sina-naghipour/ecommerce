@@ -156,23 +156,23 @@
                     </div>
                 </div>
 
-                <!-- Product Identification -->
-                <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                    <h2 class="text-lg font-medium text-gray-900 mb-4">شناسه محصول</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2" for="{{ form.sku.id_for_label }}">کد محصول (SKU)*</label>
-                            <input type="text" name="{{ form.sku.name }}" id="{{ form.sku.id_for_label }}"
-                                   value="{{ form.sku.value|default_if_none:'' }}"
-                                   class="w-full p-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                                   required>
-                            {% if form.sku.errors %}
-                            <p class="mt-1 text-sm text-red-600">{{ form.sku.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
+<!-- Product Identification -->
+<div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+    <h2 class="text-lg font-medium text-gray-900 mb-4">شناسه محصول</h2>
+    <div class="space-y-4">
+        {% if product %}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">کد محصول (SKU)</label>
+            <div class="p-2 bg-gray-100 rounded-md">
+                {{ product.sku }}
+            </div>
+            <input type="hidden" name="sku" value="{{ product.sku }}">
+        </div>
+        {% else %}
+        <input type="hidden" name="sku" value="">
+        {% endif %}
+    </div>
+</div>
                 <!-- Category -->
                 <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">دسته بندی</h2>

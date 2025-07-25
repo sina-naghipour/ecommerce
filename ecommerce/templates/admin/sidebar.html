@@ -11,37 +11,58 @@
                         پیشخوان
                     </a>
 
-                    <!-- Products -->
-                    <a href="{% url 'products:products_list' %}"
-                        class="flex items-center px-4 py-2 text-sm font-medium rounded-md group
-              {% if 'products' in request.resolver_match.url_name %}bg-indigo-800 text-white{% else %}text-indigo-200 hover:bg-indigo-800 hover:text-white{% endif %}">
-                        <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                        محصولات
-                    </a>
+                    <!-- Products Dropdown Menu -->
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                            class="flex items-center justify-between w-full px-4 py-2 text-sm font-medium rounded-md group
+                   {% if 'products' in request.resolver_match.url_name %}bg-indigo-800 text-white{% else %}text-indigo-200 hover:bg-indigo-800 hover:text-white{% endif %}">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                محصولات
+                            </div>
+                            <svg class="w-4 h-4 mr-2 transition-transform duration-200 transform"
+                                :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        <!-- Dropdown Content -->
+                        <div x-show="open" @click.away="open = false"
+                            class="mt-2 space-y-1 mr-8 bg-indigo-900 rounded-md shadow-lg">
+                            <a href="{% url 'products:products_list' %}" class="block px-4 py-2 text-sm text-white hover:bg-indigo-800 rounded-md
+                  {% if request.resolver_match.url_name == 'products_list' %}bg-indigo-800{% endif %}">
+                                لیست محصولات
+                            </a>
+                            <a href="{% url 'products:products_add' %}" class="block px-4 py-2 text-sm text-white hover:bg-indigo-800 rounded-md
+                  {% if request.resolver_match.url_name == 'product_add' %}bg-indigo-800{% endif %}">
+                                افزودن محصول جدید
+                            </a>
+                        </div>
+                    </div>
 
                     <!-- Orders -->
-                    <a href="{% url 'accounts:dashboard' %}"
+                    <a href="{% url 'orders:order_list' %}"
                         class="flex items-center px-4 py-2 text-sm font-medium rounded-md group
-              {% if 'orders' in request.resolver_match.url_name %}bg-indigo-800 text-white{% else %}text-indigo-200 hover:bg-indigo-800 hover:text-white{% endif %}">
+              {% if 'order' in request.resolver_match.url_name %}bg-indigo-800 text-white{% else %}text-indigo-200 hover:bg-indigo-800 hover:text-white{% endif %}">
                         <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                         سفارشات
                     </a>
-
-                    <!-- Users -->
-                    <a href="{% url 'accounts:dashboard' %}"
+                    <a href="{% url 'accounts:user_list' %}"
                         class="flex items-center px-4 py-2 text-sm font-medium rounded-md group
-              {% if 'users' in request.resolver_match.url_name %}bg-indigo-800 text-white{% else %}text-indigo-200 hover:bg-indigo-800 hover:text-white{% endif %}">
-                        <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                        کاربران
+              {% if 'user_list' in request.resolver_match.url_name %}bg-indigo-800 text-white{% else %}text-indigo-200 hover:bg-indigo-800 hover:text-white{% endif %}">
+                                <svg class="w-5 h-5 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                        لیست کاربران
+
                     </a>
 
                     <!-- Promotions -->

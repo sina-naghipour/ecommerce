@@ -3,7 +3,10 @@ from django.core.validators import MinValueValidator
 from products.models import Product
 from customers.models import Customer, Address
 from delivery.models import DeliveryMethod, Courier
+import uuid
+from faker import Faker
 
+fake = Faker()
 class Order(models.Model):
     ORDER_STATUS = (
         ('pending', 'در انتظار پرداخت'),
@@ -21,7 +24,12 @@ class Order(models.Model):
     )
     
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, related_name='orders')
-    order_number = models.CharField(max_length=20, unique=True, verbose_name="شماره سفارش")
+    order_number = models.CharField(
+        max_length=20, 
+        unique=True,
+        editable=False,
+        verbose_name="شماره سفارش"
+    )
     status = models.CharField(max_length=20, choices=ORDER_STATUS, default='pending')
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS)
     payment_status = models.BooleanField(default=False, verbose_name="وضعیت پرداخت")
@@ -48,6 +56,17 @@ class Order(models.Model):
     @property
     def items_count(self):
         return self.items.count()
+    
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = self.generate_order_number()
+        super().save(*args, **kwargs)
+    
+    def generate_order_number(self):
+        return fake.unique.bothify('ORD-####-???').upper()
+    def get_status_choices(self):
+        return self.ORDER_STATUS
+
 
 
 class OrderItem(models.Model):
@@ -73,16 +92,3 @@ class OrderItem(models.Model):
         return self.quantity * self.price
 
 
-class Payment(models.Model):
-    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_date = models.DateTimeField(auto_now_add=True)
-    reference_id = models.CharField(max_length=100, verbose_name="شناسه پرداخت")
-    is_successful = models.BooleanField(default=False)
-    
-    class Meta:
-        verbose_name = "پرداخت"
-        verbose_name_plural = "پرداخت‌ها"
-    
-    def __str__(self):
-        return f"Payment for Order #{self.order.order_number}"
